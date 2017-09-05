@@ -137,10 +137,11 @@ class TestHashClient(ClientTestMixin, unittest.TestCase):
 
         client._get_client = get_clients
 
-        result = client.set(b'key1', b'value1', noreply=False)
-        result = client.set(b'key3', b'value2', noreply=False)
+        assert client.set(b'key1', b'value1', noreply=False) is True
+        assert client.set(b'key3', b'value2', noreply=False) is True
         result = client.gets_many([b'key1', b'key3'])
-        assert result == {b'key1': (b'value1', b'1'), b'key3': (b'value2', b'1')}
+        assert (result ==
+                {b'key1': (b'value1', b'1'), b'key3': (b'value2', b'1')})
 
     def test_no_servers_left(self):
         from pymemcache.client.hash import HashClient
@@ -177,7 +178,7 @@ class TestHashClient(ClientTestMixin, unittest.TestCase):
         with pytest.raises(socket.error):
             client.get('foo')
 
-    def test_no_servers_left_with_commands(self):
+    def test_no_servers_left_with_commands_return_default_value(self):
         from pymemcache.client.hash import HashClient
         client = HashClient(
             [], use_pooling=True,
@@ -186,6 +187,8 @@ class TestHashClient(ClientTestMixin, unittest.TestCase):
         )
 
         result = client.get('foo')
+        assert result is None
+        result = client.set('foo', 'bar')
         assert result is False
 
     def test_no_servers_left_with_set_many(self):
